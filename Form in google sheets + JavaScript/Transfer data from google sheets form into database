@@ -1,0 +1,1156 @@
+functfunction submitData() { //Função que salva as infos do formulário no banco de dados
+  var ss        = SpreadsheetApp.getActiveSpreadsheet(); //define a planilha do GAMT como a variável "ss"
+  var formSS    = ss.getSheetByName("Entradas"); //define a aba do formulário como a variável "formSS"
+  var datasheet = ss.getSheetByName("TorquesBrutos"); //define a aba onde as infos serão salvas como a variável "datasheet"
+
+
+
+
+//Nomeia todas as células que podem ser preenchidas
+  sistema1 = formSS.getRange('C9'); //sistema da peça principal
+  nome1 = formSS.getRange('D9'); //nome da peça principal
+  id1 = formSS.getRange('E9'); //ID numérico da peça principal
+
+
+  sistema2 = formSS.getRange('C14'); //sistema da peça destino
+  nome2 = formSS.getRange('D14'); //nome da peça destino
+  id2 = formSS.getRange('E14'); //ID numérico da peça destino
+
+
+  etapa1 = formSS.getRange('F8'); //título da etapa 1
+  torq1  = formSS.getRange('F9'); //torque de aperto da etapa 1
+  unidade1 = formSS.getRange('G9'); //unidade (N.m ou °) da etapa 1
+  conv1 = formSS.getRange('F10'); //valor da conversão da etapa 1
+  uniconv1 = formSS.getRange('G10'); //unidade da conversão (kgf.m) da etapa 1
+
+
+  etapa2 = formSS.getRange('H8'); //título da etapa 2
+  torq2  = formSS.getRange('H9'); //torque de aperto da etapa 2
+  unidade2 = formSS.getRange('I9'); //unidade (N.m ou °) da etapa 2
+  conv2 = formSS.getRange('H10'); //valor da conversão da etapa 2
+  uniconv2 = formSS.getRange('I10'); //unidade da conversão (kgf.m) da etapa 2
+
+
+  etapa3 = formSS.getRange('J8'); //título da etapa 3
+  torq3  = formSS.getRange('J9'); //torque de aperto da etapa 3
+  unidade3 = formSS.getRange('K9'); //unidade (N.m ou °) da etapa 3
+  conv3 = formSS.getRange('J10'); //valor da conversão da etapa 3
+  uniconv3 = formSS.getRange('K10'); //unidade da conversão (kgf.m) da etapa 3
+
+
+  etapa4 = formSS.getRange('L8'); //título da etapa 4
+  torq4  = formSS.getRange('L9'); //torque de aperto da etapa 4
+  unidade4 = formSS.getRange('M9'); //unidade (N.m ou °) da etapa 4
+  conv4 = formSS.getRange('L10'); //valor da conversão da etapa 4
+  uniconv4 = formSS.getRange('M10'); //unidade da conversão (kgf.m) da etapa 4
+
+
+  etapa5 = formSS.getRange('N8'); //título da etapa 5
+  torq5  = formSS.getRange('N9'); //torque de aperto da etapa 5
+  unidade5 = formSS.getRange('O9'); //unidade (N.m ou °) da etapa 5
+  conv5 = formSS.getRange('N10');  //valor da conversão da etapa 5
+  uniconv5 = formSS.getRange('O10'); //unidade da conversão (kgf.m) da etapa 5
+
+
+  coment1 = formSS.getRange('P9'); //comentário
+
+
+  fixacao = formSS.getRange('C17'); //tipo de fixação (parafusos, porcas, "em branco"...)
+
+
+  sequencia = formSS.getRange('E17'); //se tem sequência indicada em figura (ao lado ou abaixo)
+
+
+  letra = formSS.getRange('C20'); //IGNORAR
+
+
+  aviso1 = formSS.getRange('D24'); //aviso de parafusos novos(TRUE ou FALSE)
+  aviso2 = formSS.getRange('D25'); //aviso de rosca esquerda(TRUE ou FALSE)
+  aviso3 = formSS.getRange('D26'); //ordem cruzada de aperto
+  aviso4 = formSS.getRange('D27'); //ordem alternada de aperto
+  aviso5 = formSS.getRange('D28'); //IGNORAR
+
+
+  subsistema = formSS.getRange('E31'); //susistema da peça principal (utilizado pra organizar as páginas de distribuição e direção)
+  supersistema = formSS.getRange('F31'); //supersistema da peça principal (utilizado pra organizar as páginas de distribuição e direção)
+
+
+  genero1 = formSS.getRange('D10'); //gênero gramatical da peça principal (utilizado na geração de texto)
+  numero1 = formSS.getRange('D11'); //número gramatical da peça principal (utilizado na geração de texto)
+  prioridade1 = formSS.getRange('D12'); //prioridade da peã principal (utilizada pra definir a ordem dos itens dentro do manual)
+
+
+  genero2 = formSS.getRange('D15'); //gênero gramatical da peça destino (utilizado na geração de texto)
+  numero2 = formSS.getRange('D16'); //número gramatical da peça destino (utilizado na geração de texto)
+
+
+  print1 = formSS.getRange('E20'); //print 1 (vai salvar na aba "Prints" quando o manual for gerado)
+  print2 = formSS.getRange('H20'); //print 2 (vai salvar na aba "Prints" quando o manual for gerado)
+
+
+
+
+  //Pega os valores preenchidos e salva na forma de uma matriz
+  var values = [[sistema1.getValue(),
+                 nome1.getValue(),
+                 id1.getValue(),
+                 torq1.getValue(),
+                 unidade1.getValue(),
+                 conv1.getValue(),
+                 uniconv1.getValue(),
+                 torq2.getValue(),
+                 unidade2.getValue(),
+                 conv2.getValue(),
+                 uniconv2.getValue(),
+                 torq3.getValue(),
+                 unidade3.getValue(),
+                 conv3.getValue(),
+                 uniconv3.getValue(),
+                 torq4.getValue(),
+                 unidade4.getValue(),
+                 conv4.getValue(),
+                 uniconv4.getValue(),
+                 torq5.getValue(),
+                 unidade5.getValue(),
+                 conv5.getValue(),
+                 uniconv5.getValue(),
+                 coment1.getValue(),
+                 sistema2.getValue(),
+                 nome2.getValue(),
+                 id2.getValue(),
+                 fixacao.getValue(),
+                 letra.getValue(),
+                 aviso1.getValue(),
+                 aviso2.getValue(),
+                 aviso3.getValue(),
+                 aviso4.getValue(),
+                 aviso5.getValue(),
+                 etapa1.getValue(),
+                 etapa2.getValue(),
+                 etapa3.getValue(),
+                 etapa4.getValue(),
+                 etapa5.getValue(),
+                 sequencia.getValue(),
+                 genero1.getValue(),
+                 genero2.getValue(),              
+                 numero1.getValue(),
+                 numero2.getValue(),
+                 prioridade1.getValue(),
+                 subsistema.getValue(),
+                 supersistema.getValue(),]];
+
+
+
+
+
+
+//Pega a última linha em branco da planilha de respostas e preenche as suas 45 colunas com os valores da matriz "values"
+  datasheet.getRange(datasheet.getLastRow()+1, 1, 1, 47).setValues(values);
+  print1.copyTo(datasheet.getRange(datasheet.getLastRow(),48,1,1)); //salva o print1 nas últimas colunas da matriz de respostas
+  print2.copyTo(datasheet.getRange(datasheet.getLastRow(),49,1,1)); //salva o print2 nas últimas colunas da matriz de respostas
+
+
+
+
+//Preenche as células principais com as fórmulas iniciais para serem preenchidas novamente. Efetivamente resetando o formulário para seu estado inicial após salvar a resposta
+  sistema1.setFormula('=IF(D9="";""; FILTER(Base!E:E;Base!F:F=D9))');
+  id1.setFormula('=IF(D9=""; ""; FILTER(Base!G:G; Base!F:F=D9))');
+ 
+
+
+  sistema2.setFormula('=IF(D14=""; "" ;FILTER(Base!E:E;Base!F:F=D14))');
+  id2.setFormula('=IF(D14=""; ""; FILTER(Base!G:G; Base!F:F=D14))');
+ 
+
+
+
+
+  etapa1.setFormula('=IF(H9="";"Etapa Única"; "Etapa 1")');
+
+
+  etapa2.setFormula('=IF(H9=""; ""; "Etapa 2")');
+
+
+  etapa3.setFormula('=IF(J9=""; ""; "Etapa 3")');
+
+
+  etapa4.setFormula('=IF(L9=""; ""; "Etapa 4")');
+
+
+  etapa5.setFormula('=IF(N9=""; ""; "Etapa 5")');
+
+
+
+
+  unidade1.setValue('N.m');
+
+
+  unidade2.setFormula('=IF(H9=""; ""; "N.m")');
+
+
+  unidade3.setFormula('=IF(J9=""; ""; "N.m")');
+
+
+  unidade4.setFormula('=IF(L9=""; ""; "N.m")');
+
+
+  unidade5.setFormula('=IF(N9=""; ""; "N.m")');
+
+
+
+
+  conv1.setFormula('=IFS(F9=""; ""; G9="N.m"; ROUND(F9*0,101972;2); G9<>"N.m";"")');
+
+
+  conv2.setFormula('=IFS(H9=""; ""; I9="N.m"; ROUND(H9*0,101972;2); I9<>"N.m";"")');
+
+
+  conv3.setFormula('=IFS(J9=""; ""; K9="N.m"; ROUND(J9*0,101972;2); K9<>"N.m";"")');
+
+
+  conv4.setFormula('=IFS(L9=""; ""; M9="N.m"; ROUND(L9*0,101972;2); M9<>"N.m";"")');
+
+
+  conv5.setFormula('=IFS(N9=""; ""; O9="N.m"; ROUND(N9*0,101972;2); O9<>"N.m";"")');
+
+
+
+
+  uniconv1.setFormula('=IFS(F9=""; ""; G9="N.m";"kgf.m"; H9<>"N.m";"")');
+
+
+  uniconv2.setFormula('=IFS(H9=""; ""; I9="N.m";"kgf.m"; J9<>"N.m";"")');
+
+
+  uniconv3.setFormula('=IFS(J9=""; ""; K9="N.m";"kgf.m"; L9<>"N.m";"")');
+
+
+  uniconv4.setFormula('=IFS(L9=""; ""; M9="N.m";"kgf.m"; N9<>"N.m";"")');
+
+
+  uniconv5.setFormula('=IFS(N9=""; ""; O9="N.m";"kgf.m"; P9<>"N.m";"")');
+
+
+  sequencia.setFormula('=IF(D9="Cabeçote";"(figura abaixo)";"")');
+
+
+  subsistema.setFormula('=IF(D9=""; ""; FILTER(Base!U:U; Base!F:F=D9))');
+  supersistema.setFormula('=IF(D9="";"";IF(REGEXMATCH(C9;"Distribuição")=TRUE;"Distribuição";C9))');
+
+
+
+
+  genero1.setFormula('=IF(D9=""; ""; FILTER(Base!W:W; Base!F:F=D9))');
+
+
+  genero2.setFormula('=IF(D14=""; ""; FILTER(Base!W:W; Base!F:F=D14))');
+
+
+
+
+  numero1.setFormula('=IF(D9=""; ""; FILTER(Base!X:X; Base!F:F=D9))');
+
+
+  numero2.setFormula('=IF(D14=""; ""; FILTER(Base!X:X; Base!F:F=D14))');
+
+
+
+
+  prioridade1.setFormula('=IF(D9=""; ""; FILTER(Base!Y:Y; Base!F:F=D9))');
+
+
+
+
+  fixacao.setFormula('=IFS(C9="Suspensão Dianteira"; "Em Branco"; C9="Suspensão Traseira"; "Em Branco"; C9="Freio Dianteiro"; "Em Branco"; C9="Freio Traseiro"; "Em Branco"; D9="Contraporca do Tirante de Regulagem da Direção"; "Em Branco"; D9="Ponteira de Direção";"Porca";C9="Direção";"Fixação"; E30="Distribuição";"Parafuso"; C9="Outros Componentes"; "Em Branco"; C9="";"";C9<>"";"Parafusos")');
+
+
+
+
+//Reseta todas as outras células para seus valores iniciais para que o próximo torque seja preenchido
+ 
+  nome1.setValue(null);
+  nome2.setValue(null);
+
+
+  torq1.setValue(null);
+  torq2.setValue(null);
+  torq3.setValue(null);
+  torq4.setValue(null);
+  torq5.setValue(null);
+
+
+  coment1.setValue(null);
+
+
+  letra.setValue('Nenhuma')
+
+
+  aviso1.setValue(null);
+  aviso2.setValue(null);
+  aviso3.setValue(null);
+  aviso4.setValue(null);
+  aviso5.setValue(null);
+
+
+  print1.setValue(null);
+  print2.setValue(null);
+
+
+
+
+ 
+ 
+
+
+}
+
+
+function reset() { //Apenas reseta todas as células do formulário. É idêntica à porça final da "submitData"
+  var ss        = SpreadsheetApp.getActiveSpreadsheet();
+  var formSS    = ss.getSheetByName("Entradas"); //Form Sheet
+  var datasheet = ss.getSheetByName("Torques"); //Data Sheet
+  var fundo     = ss.getSheetByName("Fundo");
+
+
+//Nomeia todas as células que podem ser preenchidas
+    sistema1 = formSS.getRange('C9');
+  nome1 = formSS.getRange('D9');
+  id1 = formSS.getRange('E9');
+
+
+  sistema2 = formSS.getRange('C14');
+  nome2 = formSS.getRange('D14');
+  id2 = formSS.getRange('E14');
+
+
+  etapa1 = formSS.getRange('F8');
+  torq1  = formSS.getRange('F9');
+  unidade1 = formSS.getRange('G9');
+  conv1 = formSS.getRange('F10');
+  uniconv1 = formSS.getRange('G10');
+
+
+  etapa2 = formSS.getRange('H8');
+  torq2  = formSS.getRange('H9');
+  unidade2 = formSS.getRange('I9');
+  conv2 = formSS.getRange('H10');
+  uniconv2 = formSS.getRange('I10');
+
+
+  etapa3 = formSS.getRange('J8');
+  torq3  = formSS.getRange('J9');
+  unidade3 = formSS.getRange('K9');
+  conv3 = formSS.getRange('J10');
+  uniconv3 = formSS.getRange('K10');
+
+
+  etapa4 = formSS.getRange('L8');
+  torq4  = formSS.getRange('L9');
+  unidade4 = formSS.getRange('M9');
+  conv4 = formSS.getRange('L10');
+  uniconv4 = formSS.getRange('M10');
+
+
+  etapa5 = formSS.getRange('N8');
+  torq5  = formSS.getRange('N9');
+  unidade5 = formSS.getRange('O9');
+  conv5 = formSS.getRange('N10');
+  uniconv5 = formSS.getRange('O10');
+
+
+  coment1 = formSS.getRange('P9');
+
+
+  fixacao = formSS.getRange('C17');
+
+
+  sequencia = formSS.getRange('E17');
+
+
+  letra = formSS.getRange('C20');
+
+
+  aviso1 = formSS.getRange('D24');
+  aviso2 = formSS.getRange('D25');
+  aviso3 = formSS.getRange('D26');
+  aviso4 = formSS.getRange('D27');
+  aviso5 = formSS.getRange('D28');
+
+
+  subsistema = formSS.getRange('E29');
+  supersistema = formSS.getRange('E30');
+
+
+  genero1 = formSS.getRange('Q9');
+  numero1 = formSS.getRange('R9');
+  prioridade1 = formSS.getRange('S9');
+
+
+  genero2 = formSS.getRange('G14');
+  numero2 = formSS.getRange('H14');
+
+
+  print1 = formSS.getRange('E20');
+  print2 = formSS.getRange('H20');
+
+
+//Preenche as células principais com as fórmulas iniciais para serem preenchidas novamente. Efetivamente resetando o formulário para seu estado inicial após salvar a resposta
+  sistema1.setFormula('=IF(D9="";""; FILTER(Base!E:E;Base!F:F=D9))');
+  id1.setFormula('=IF(D9=""; ""; FILTER(Base!G:G; Base!F:F=D9))');
+ 
+
+
+  sistema2.setFormula('=IF(D14=""; "" ;FILTER(Base!E:E;Base!F:F=D14))');
+  id2.setFormula('=IF(D14=""; ""; FILTER(Base!G:G; Base!F:F=D14))');
+ 
+
+
+
+
+  etapa1.setFormula('=IF(H9="";"Etapa Única"; "Etapa 1")');
+
+
+  etapa2.setFormula('=IF(H9=""; ""; "Etapa 2")');
+
+
+  etapa3.setFormula('=IF(J9=""; ""; "Etapa 3")');
+
+
+  etapa4.setFormula('=IF(L9=""; ""; "Etapa 4")');
+
+
+  etapa5.setFormula('=IF(N9=""; ""; "Etapa 5")');
+
+
+
+
+  unidade1.setValue('N.m');
+
+
+  unidade2.setFormula('=IF(H9=""; ""; "N.m")');
+
+
+  unidade3.setFormula('=IF(J9=""; ""; "N.m")');
+
+
+  unidade4.setFormula('=IF(L9=""; ""; "N.m")');
+
+
+  unidade5.setFormula('=IF(N9=""; ""; "N.m")');
+
+
+
+
+  conv1.setFormula('=IFS(F9=""; ""; G9="N.m"; ROUND(F9*0,101972;2); G9<>"N.m";"")');
+
+
+  conv2.setFormula('=IFS(H9=""; ""; I9="N.m"; ROUND(H9*0,101972;2); I9<>"N.m";"")');
+
+
+  conv3.setFormula('=IFS(J9=""; ""; K9="N.m"; ROUND(J9*0,101972;2); K9<>"N.m";"")');
+
+
+  conv4.setFormula('=IFS(L9=""; ""; M9="N.m"; ROUND(L9*0,101972;2); M9<>"N.m";"")');
+
+
+  conv5.setFormula('=IFS(N9=""; ""; O9="N.m"; ROUND(N9*0,101972;2); O9<>"N.m";"")');
+
+
+
+
+  uniconv1.setFormula('=IFS(F9=""; ""; G9="N.m";"kgf.m"; H9<>"N.m";"")');
+
+
+  uniconv2.setFormula('=IFS(H9=""; ""; I9="N.m";"kgf.m"; J9<>"N.m";"")');
+
+
+  uniconv3.setFormula('=IFS(J9=""; ""; K9="N.m";"kgf.m"; L9<>"N.m";"")');
+
+
+  uniconv4.setFormula('=IFS(L9=""; ""; M9="N.m";"kgf.m"; N9<>"N.m";"")');
+
+
+  uniconv5.setFormula('=IFS(N9=""; ""; O9="N.m";"kgf.m"; P9<>"N.m";"")');
+
+
+  sequencia.setFormula('=IF(D9="Cabeçote";"(figura abaixo)";"")');
+
+
+  subsistema.setFormula('=IF(D9=""; ""; FILTER(Base!U:U; Base!F:F=D9))');
+  supersistema.setFormula('=IF(D9="";"";IF(REGEXMATCH(C9;"Distribuição")=TRUE;"Distribuição";C9))');
+
+
+
+
+   genero1.setFormula('=IF(D9=""; ""; FILTER(Base!W:W; Base!F:F=D9))');
+
+
+  genero2.setFormula('=IF(D14=""; ""; FILTER(Base!W:W; Base!F:F=D14))');
+
+
+
+
+  numero1.setFormula('=IF(D9=""; ""; FILTER(Base!X:X; Base!F:F=D9))');
+
+
+  numero2.setFormula('=IF(D14=""; ""; FILTER(Base!X:X; Base!F:F=D14))');
+
+
+
+
+  prioridade1.setFormula('=IF(D9=""; ""; FILTER(Base!Y:Y; Base!F:F=D9))');
+
+
+
+
+
+
+  fixacao.setFormula('=IFS(C9="Suspensão Dianteira"; "Em Branco"; C9="Suspensão Traseira"; "Em Branco"; C9="Freio Dianteiro"; "Em Branco"; C9="Freio Traseiro"; "Em Branco"; D9="Contraporca do Tirante de Regulagem da Direção"; "Em Branco"; D9="Ponteira de Direção";"Porca";C9="Direção";"Fixação"; E30="Distribuição";"Parafuso"; C9="Outros Componentes"; "Em Branco"; C9="";"";C9<>"";"Parafusos")');
+
+
+
+
+//Reseta todas as outras células para seus valores iniciais para que o próximo torque seja preenchido
+ 
+  nome1.setValue(null);
+  nome2.setValue(null);
+
+
+  torq1.setValue(null);
+  torq2.setValue(null);
+  torq3.setValue(null);
+  torq4.setValue(null);
+  torq5.setValue(null);
+
+
+  coment1.setValue(null);
+
+
+
+
+
+
+  sequencia.setValue(null);
+
+
+  letra.setValue('Nenhuma')
+
+
+  aviso1.setValue(null);
+  aviso2.setValue(null);
+  aviso3.setValue(null);
+  aviso4.setValue(null);
+  aviso5.setValue(null);
+
+
+  print1.setValue(null);
+  print2.setValue(null);
+
+
+//Apagar todos os "#REF!" da planilha de respostas
+  var lastRow = datasheet.getLastRow()
+  var lastColumn = datasheet.getLastColumn()
+  var range = datasheet.getRange(1, 1, lastRow, lastColumn)
+  var to_replace = "#REF!";
+  var replace_with = "";
+  var data  = range.getValues();
+ 
+    var oldValue="#REF!";
+    var newValue="1";
+    var cellsChanged = 0;
+ 
+    for (var r=0; r<data.length; r++) {
+      for (var i=0; i<data[r].length; i++) {
+        oldValue = data[r][i];
+        newValue = data[r][i].toString().replace(to_replace, replace_with);
+        if (oldValue!=newValue)
+        {
+          cellsChanged++;
+          data[r][i] = newValue;
+        }
+      }
+    }
+    range.setValues(data);
+ 
+ 
+
+
+}
+ion submitData() { //Função que salva as infos do formulário no banco de dados
+  var ss        = SpreadsheetApp.getActiveSpreadsheet(); //define a planilha do GAMT como a variável "ss"
+  var formSS    = ss.getSheetByName("Entradas"); //define a aba do formulário como a variável "formSS"
+  var datasheet = ss.getSheetByName("TorquesBrutos"); //define a aba onde as infos serão salvas como a variável "datasheet"
+
+
+
+
+//Nomeia todas as células que podem ser preenchidas
+  sistema1 = formSS.getRange('C9'); //sistema da peça principal
+  nome1 = formSS.getRange('D9'); //nome da peça principal
+  id1 = formSS.getRange('E9'); //ID numérico da peça principal
+
+
+  sistema2 = formSS.getRange('C14'); //sistema da peça destino
+  nome2 = formSS.getRange('D14'); //nome da peça destino
+  id2 = formSS.getRange('E14'); //ID numérico da peça destino
+
+
+  etapa1 = formSS.getRange('F8'); //título da etapa 1
+  torq1  = formSS.getRange('F9'); //torque de aperto da etapa 1
+  unidade1 = formSS.getRange('G9'); //unidade (N.m ou °) da etapa 1
+  conv1 = formSS.getRange('F10'); //valor da conversão da etapa 1
+  uniconv1 = formSS.getRange('G10'); //unidade da conversão (kgf.m) da etapa 1
+
+
+  etapa2 = formSS.getRange('H8'); //título da etapa 2
+  torq2  = formSS.getRange('H9'); //torque de aperto da etapa 2
+  unidade2 = formSS.getRange('I9'); //unidade (N.m ou °) da etapa 2
+  conv2 = formSS.getRange('H10'); //valor da conversão da etapa 2
+  uniconv2 = formSS.getRange('I10'); //unidade da conversão (kgf.m) da etapa 2
+
+
+  etapa3 = formSS.getRange('J8'); //título da etapa 3
+  torq3  = formSS.getRange('J9'); //torque de aperto da etapa 3
+  unidade3 = formSS.getRange('K9'); //unidade (N.m ou °) da etapa 3
+  conv3 = formSS.getRange('J10'); //valor da conversão da etapa 3
+  uniconv3 = formSS.getRange('K10'); //unidade da conversão (kgf.m) da etapa 3
+
+
+  etapa4 = formSS.getRange('L8'); //título da etapa 4
+  torq4  = formSS.getRange('L9'); //torque de aperto da etapa 4
+  unidade4 = formSS.getRange('M9'); //unidade (N.m ou °) da etapa 4
+  conv4 = formSS.getRange('L10'); //valor da conversão da etapa 4
+  uniconv4 = formSS.getRange('M10'); //unidade da conversão (kgf.m) da etapa 4
+
+
+  etapa5 = formSS.getRange('N8'); //título da etapa 5
+  torq5  = formSS.getRange('N9'); //torque de aperto da etapa 5
+  unidade5 = formSS.getRange('O9'); //unidade (N.m ou °) da etapa 5
+  conv5 = formSS.getRange('N10');  //valor da conversão da etapa 5
+  uniconv5 = formSS.getRange('O10'); //unidade da conversão (kgf.m) da etapa 5
+
+
+  coment1 = formSS.getRange('P9'); //comentário
+
+
+  fixacao = formSS.getRange('C17'); //tipo de fixação (parafusos, porcas, "em branco"...)
+
+
+  sequencia = formSS.getRange('E17'); //se tem sequência indicada em figura (ao lado ou abaixo)
+
+
+  letra = formSS.getRange('C20'); //IGNORAR
+
+
+  aviso1 = formSS.getRange('D24'); //aviso de parafusos novos(TRUE ou FALSE)
+  aviso2 = formSS.getRange('D25'); //aviso de rosca esquerda(TRUE ou FALSE)
+  aviso3 = formSS.getRange('D26'); //ordem cruzada de aperto
+  aviso4 = formSS.getRange('D27'); //ordem alternada de aperto
+  aviso5 = formSS.getRange('D28'); //IGNORAR
+
+
+  subsistema = formSS.getRange('E31'); //susistema da peça principal (utilizado pra organizar as páginas de distribuição e direção)
+  supersistema = formSS.getRange('F31'); //supersistema da peça principal (utilizado pra organizar as páginas de distribuição e direção)
+
+
+  genero1 = formSS.getRange('D10'); //gênero gramatical da peça principal (utilizado na geração de texto)
+  numero1 = formSS.getRange('D11'); //número gramatical da peça principal (utilizado na geração de texto)
+  prioridade1 = formSS.getRange('D12'); //prioridade da peã principal (utilizada pra definir a ordem dos itens dentro do manual)
+
+
+  genero2 = formSS.getRange('D15'); //gênero gramatical da peça destino (utilizado na geração de texto)
+  numero2 = formSS.getRange('D16'); //número gramatical da peça destino (utilizado na geração de texto)
+
+
+  print1 = formSS.getRange('E20'); //print 1 (vai salvar na aba "Prints" quando o manual for gerado)
+  print2 = formSS.getRange('H20'); //print 2 (vai salvar na aba "Prints" quando o manual for gerado)
+
+
+
+
+  //Pega os valores preenchidos e salva na forma de uma matriz
+  var values = [[sistema1.getValue(),
+                 nome1.getValue(),
+                 id1.getValue(),
+                 torq1.getValue(),
+                 unidade1.getValue(),
+                 conv1.getValue(),
+                 uniconv1.getValue(),
+                 torq2.getValue(),
+                 unidade2.getValue(),
+                 conv2.getValue(),
+                 uniconv2.getValue(),
+                 torq3.getValue(),
+                 unidade3.getValue(),
+                 conv3.getValue(),
+                 uniconv3.getValue(),
+                 torq4.getValue(),
+                 unidade4.getValue(),
+                 conv4.getValue(),
+                 uniconv4.getValue(),
+                 torq5.getValue(),
+                 unidade5.getValue(),
+                 conv5.getValue(),
+                 uniconv5.getValue(),
+                 coment1.getValue(),
+                 sistema2.getValue(),
+                 nome2.getValue(),
+                 id2.getValue(),
+                 fixacao.getValue(),
+                 letra.getValue(),
+                 aviso1.getValue(),
+                 aviso2.getValue(),
+                 aviso3.getValue(),
+                 aviso4.getValue(),
+                 aviso5.getValue(),
+                 etapa1.getValue(),
+                 etapa2.getValue(),
+                 etapa3.getValue(),
+                 etapa4.getValue(),
+                 etapa5.getValue(),
+                 sequencia.getValue(),
+                 genero1.getValue(),
+                 genero2.getValue(),              
+                 numero1.getValue(),
+                 numero2.getValue(),
+                 prioridade1.getValue(),
+                 subsistema.getValue(),
+                 supersistema.getValue(),]];
+
+
+
+
+
+
+//Pega a última linha em branco da planilha de respostas e preenche as suas 45 colunas com os valores da matriz "values"
+  datasheet.getRange(datasheet.getLastRow()+1, 1, 1, 47).setValues(values);
+  print1.copyTo(datasheet.getRange(datasheet.getLastRow(),48,1,1)); //salva o print1 nas últimas colunas da matriz de respostas
+  print2.copyTo(datasheet.getRange(datasheet.getLastRow(),49,1,1)); //salva o print2 nas últimas colunas da matriz de respostas
+
+
+
+
+//Preenche as células principais com as fórmulas iniciais para serem preenchidas novamente. Efetivamente resetando o formulário para seu estado inicial após salvar a resposta
+  sistema1.setFormula('=IF(D9="";""; FILTER(Base!E:E;Base!F:F=D9))');
+  id1.setFormula('=IF(D9=""; ""; FILTER(Base!G:G; Base!F:F=D9))');
+ 
+
+
+  sistema2.setFormula('=IF(D14=""; "" ;FILTER(Base!E:E;Base!F:F=D14))');
+  id2.setFormula('=IF(D14=""; ""; FILTER(Base!G:G; Base!F:F=D14))');
+ 
+
+
+
+
+  etapa1.setFormula('=IF(H9="";"Etapa Única"; "Etapa 1")');
+
+
+  etapa2.setFormula('=IF(H9=""; ""; "Etapa 2")');
+
+
+  etapa3.setFormula('=IF(J9=""; ""; "Etapa 3")');
+
+
+  etapa4.setFormula('=IF(L9=""; ""; "Etapa 4")');
+
+
+  etapa5.setFormula('=IF(N9=""; ""; "Etapa 5")');
+
+
+
+
+  unidade1.setValue('N.m');
+
+
+  unidade2.setFormula('=IF(H9=""; ""; "N.m")');
+
+
+  unidade3.setFormula('=IF(J9=""; ""; "N.m")');
+
+
+  unidade4.setFormula('=IF(L9=""; ""; "N.m")');
+
+
+  unidade5.setFormula('=IF(N9=""; ""; "N.m")');
+
+
+
+
+  conv1.setFormula('=IFS(F9=""; ""; G9="N.m"; ROUND(F9*0,101972;2); G9<>"N.m";"")');
+
+
+  conv2.setFormula('=IFS(H9=""; ""; I9="N.m"; ROUND(H9*0,101972;2); I9<>"N.m";"")');
+
+
+  conv3.setFormula('=IFS(J9=""; ""; K9="N.m"; ROUND(J9*0,101972;2); K9<>"N.m";"")');
+
+
+  conv4.setFormula('=IFS(L9=""; ""; M9="N.m"; ROUND(L9*0,101972;2); M9<>"N.m";"")');
+
+
+  conv5.setFormula('=IFS(N9=""; ""; O9="N.m"; ROUND(N9*0,101972;2); O9<>"N.m";"")');
+
+
+
+
+  uniconv1.setFormula('=IFS(F9=""; ""; G9="N.m";"kgf.m"; H9<>"N.m";"")');
+
+
+  uniconv2.setFormula('=IFS(H9=""; ""; I9="N.m";"kgf.m"; J9<>"N.m";"")');
+
+
+  uniconv3.setFormula('=IFS(J9=""; ""; K9="N.m";"kgf.m"; L9<>"N.m";"")');
+
+
+  uniconv4.setFormula('=IFS(L9=""; ""; M9="N.m";"kgf.m"; N9<>"N.m";"")');
+
+
+  uniconv5.setFormula('=IFS(N9=""; ""; O9="N.m";"kgf.m"; P9<>"N.m";"")');
+
+
+  sequencia.setFormula('=IF(D9="Cabeçote";"(figura abaixo)";"")');
+
+
+  subsistema.setFormula('=IF(D9=""; ""; FILTER(Base!U:U; Base!F:F=D9))');
+  supersistema.setFormula('=IF(D9="";"";IF(REGEXMATCH(C9;"Distribuição")=TRUE;"Distribuição";C9))');
+
+
+
+
+  genero1.setFormula('=IF(D9=""; ""; FILTER(Base!W:W; Base!F:F=D9))');
+
+
+  genero2.setFormula('=IF(D14=""; ""; FILTER(Base!W:W; Base!F:F=D14))');
+
+
+
+
+  numero1.setFormula('=IF(D9=""; ""; FILTER(Base!X:X; Base!F:F=D9))');
+
+
+  numero2.setFormula('=IF(D14=""; ""; FILTER(Base!X:X; Base!F:F=D14))');
+
+
+
+
+  prioridade1.setFormula('=IF(D9=""; ""; FILTER(Base!Y:Y; Base!F:F=D9))');
+
+
+
+
+  fixacao.setFormula('=IFS(C9="Suspensão Dianteira"; "Em Branco"; C9="Suspensão Traseira"; "Em Branco"; C9="Freio Dianteiro"; "Em Branco"; C9="Freio Traseiro"; "Em Branco"; D9="Contraporca do Tirante de Regulagem da Direção"; "Em Branco"; D9="Ponteira de Direção";"Porca";C9="Direção";"Fixação"; E30="Distribuição";"Parafuso"; C9="Outros Componentes"; "Em Branco"; C9="";"";C9<>"";"Parafusos")');
+
+
+
+
+//Reseta todas as outras células para seus valores iniciais para que o próximo torque seja preenchido
+ 
+  nome1.setValue(null);
+  nome2.setValue(null);
+
+
+  torq1.setValue(null);
+  torq2.setValue(null);
+  torq3.setValue(null);
+  torq4.setValue(null);
+  torq5.setValue(null);
+
+
+  coment1.setValue(null);
+
+
+  letra.setValue('Nenhuma')
+
+
+  aviso1.setValue(null);
+  aviso2.setValue(null);
+  aviso3.setValue(null);
+  aviso4.setValue(null);
+  aviso5.setValue(null);
+
+
+  print1.setValue(null);
+  print2.setValue(null);
+
+
+
+
+ 
+ 
+
+
+}
+
+
+function reset() { //Apenas reseta todas as células do formulário. É idêntica à porça final da "submitData"
+  var ss        = SpreadsheetApp.getActiveSpreadsheet();
+  var formSS    = ss.getSheetByName("Entradas"); //Form Sheet
+  var datasheet = ss.getSheetByName("Torques"); //Data Sheet
+  var fundo     = ss.getSheetByName("Fundo");
+
+
+//Nomeia todas as células que podem ser preenchidas
+    sistema1 = formSS.getRange('C9');
+  nome1 = formSS.getRange('D9');
+  id1 = formSS.getRange('E9');
+
+
+  sistema2 = formSS.getRange('C14');
+  nome2 = formSS.getRange('D14');
+  id2 = formSS.getRange('E14');
+
+
+  etapa1 = formSS.getRange('F8');
+  torq1  = formSS.getRange('F9');
+  unidade1 = formSS.getRange('G9');
+  conv1 = formSS.getRange('F10');
+  uniconv1 = formSS.getRange('G10');
+
+
+  etapa2 = formSS.getRange('H8');
+  torq2  = formSS.getRange('H9');
+  unidade2 = formSS.getRange('I9');
+  conv2 = formSS.getRange('H10');
+  uniconv2 = formSS.getRange('I10');
+
+
+  etapa3 = formSS.getRange('J8');
+  torq3  = formSS.getRange('J9');
+  unidade3 = formSS.getRange('K9');
+  conv3 = formSS.getRange('J10');
+  uniconv3 = formSS.getRange('K10');
+
+
+  etapa4 = formSS.getRange('L8');
+  torq4  = formSS.getRange('L9');
+  unidade4 = formSS.getRange('M9');
+  conv4 = formSS.getRange('L10');
+  uniconv4 = formSS.getRange('M10');
+
+
+  etapa5 = formSS.getRange('N8');
+  torq5  = formSS.getRange('N9');
+  unidade5 = formSS.getRange('O9');
+  conv5 = formSS.getRange('N10');
+  uniconv5 = formSS.getRange('O10');
+
+
+  coment1 = formSS.getRange('P9');
+
+
+  fixacao = formSS.getRange('C17');
+
+
+  sequencia = formSS.getRange('E17');
+
+
+  letra = formSS.getRange('C20');
+
+
+  aviso1 = formSS.getRange('D24');
+  aviso2 = formSS.getRange('D25');
+  aviso3 = formSS.getRange('D26');
+  aviso4 = formSS.getRange('D27');
+  aviso5 = formSS.getRange('D28');
+
+
+  subsistema = formSS.getRange('E29');
+  supersistema = formSS.getRange('E30');
+
+
+  genero1 = formSS.getRange('Q9');
+  numero1 = formSS.getRange('R9');
+  prioridade1 = formSS.getRange('S9');
+
+
+  genero2 = formSS.getRange('G14');
+  numero2 = formSS.getRange('H14');
+
+
+  print1 = formSS.getRange('E20');
+  print2 = formSS.getRange('H20');
+
+
+//Preenche as células principais com as fórmulas iniciais para serem preenchidas novamente. Efetivamente resetando o formulário para seu estado inicial após salvar a resposta
+  sistema1.setFormula('=IF(D9="";""; FILTER(Base!E:E;Base!F:F=D9))');
+  id1.setFormula('=IF(D9=""; ""; FILTER(Base!G:G; Base!F:F=D9))');
+ 
+
+
+  sistema2.setFormula('=IF(D14=""; "" ;FILTER(Base!E:E;Base!F:F=D14))');
+  id2.setFormula('=IF(D14=""; ""; FILTER(Base!G:G; Base!F:F=D14))');
+ 
+
+
+
+
+  etapa1.setFormula('=IF(H9="";"Etapa Única"; "Etapa 1")');
+
+
+  etapa2.setFormula('=IF(H9=""; ""; "Etapa 2")');
+
+
+  etapa3.setFormula('=IF(J9=""; ""; "Etapa 3")');
+
+
+  etapa4.setFormula('=IF(L9=""; ""; "Etapa 4")');
+
+
+  etapa5.setFormula('=IF(N9=""; ""; "Etapa 5")');
+
+
+
+
+  unidade1.setValue('N.m');
+
+
+  unidade2.setFormula('=IF(H9=""; ""; "N.m")');
+
+
+  unidade3.setFormula('=IF(J9=""; ""; "N.m")');
+
+
+  unidade4.setFormula('=IF(L9=""; ""; "N.m")');
+
+
+  unidade5.setFormula('=IF(N9=""; ""; "N.m")');
+
+
+
+
+  conv1.setFormula('=IFS(F9=""; ""; G9="N.m"; ROUND(F9*0,101972;2); G9<>"N.m";"")');
+
+
+  conv2.setFormula('=IFS(H9=""; ""; I9="N.m"; ROUND(H9*0,101972;2); I9<>"N.m";"")');
+
+
+  conv3.setFormula('=IFS(J9=""; ""; K9="N.m"; ROUND(J9*0,101972;2); K9<>"N.m";"")');
+
+
+  conv4.setFormula('=IFS(L9=""; ""; M9="N.m"; ROUND(L9*0,101972;2); M9<>"N.m";"")');
+
+
+  conv5.setFormula('=IFS(N9=""; ""; O9="N.m"; ROUND(N9*0,101972;2); O9<>"N.m";"")');
+
+
+
+
+  uniconv1.setFormula('=IFS(F9=""; ""; G9="N.m";"kgf.m"; H9<>"N.m";"")');
+
+
+  uniconv2.setFormula('=IFS(H9=""; ""; I9="N.m";"kgf.m"; J9<>"N.m";"")');
+
+
+  uniconv3.setFormula('=IFS(J9=""; ""; K9="N.m";"kgf.m"; L9<>"N.m";"")');
+
+
+  uniconv4.setFormula('=IFS(L9=""; ""; M9="N.m";"kgf.m"; N9<>"N.m";"")');
+
+
+  uniconv5.setFormula('=IFS(N9=""; ""; O9="N.m";"kgf.m"; P9<>"N.m";"")');
+
+
+  sequencia.setFormula('=IF(D9="Cabeçote";"(figura abaixo)";"")');
+
+
+  subsistema.setFormula('=IF(D9=""; ""; FILTER(Base!U:U; Base!F:F=D9))');
+  supersistema.setFormula('=IF(D9="";"";IF(REGEXMATCH(C9;"Distribuição")=TRUE;"Distribuição";C9))');
+
+
+
+
+   genero1.setFormula('=IF(D9=""; ""; FILTER(Base!W:W; Base!F:F=D9))');
+
+
+  genero2.setFormula('=IF(D14=""; ""; FILTER(Base!W:W; Base!F:F=D14))');
+
+
+
+
+  numero1.setFormula('=IF(D9=""; ""; FILTER(Base!X:X; Base!F:F=D9))');
+
+
+  numero2.setFormula('=IF(D14=""; ""; FILTER(Base!X:X; Base!F:F=D14))');
+
+
+
+
+  prioridade1.setFormula('=IF(D9=""; ""; FILTER(Base!Y:Y; Base!F:F=D9))');
+
+
+
+
+
+
+  fixacao.setFormula('=IFS(C9="Suspensão Dianteira"; "Em Branco"; C9="Suspensão Traseira"; "Em Branco"; C9="Freio Dianteiro"; "Em Branco"; C9="Freio Traseiro"; "Em Branco"; D9="Contraporca do Tirante de Regulagem da Direção"; "Em Branco"; D9="Ponteira de Direção";"Porca";C9="Direção";"Fixação"; E30="Distribuição";"Parafuso"; C9="Outros Componentes"; "Em Branco"; C9="";"";C9<>"";"Parafusos")');
+
+
+
+
+//Reseta todas as outras células para seus valores iniciais para que o próximo torque seja preenchido
+ 
+  nome1.setValue(null);
+  nome2.setValue(null);
+
+
+  torq1.setValue(null);
+  torq2.setValue(null);
+  torq3.setValue(null);
+  torq4.setValue(null);
+  torq5.setValue(null);
+
+
+  coment1.setValue(null);
+
+
+
+
+
+
+  sequencia.setValue(null);
+
+
+  letra.setValue('Nenhuma')
+
+
+  aviso1.setValue(null);
+  aviso2.setValue(null);
+  aviso3.setValue(null);
+  aviso4.setValue(null);
+  aviso5.setValue(null);
+
+
+  print1.setValue(null);
+  print2.setValue(null);
+
+
+//Apagar todos os "#REF!" da planilha de respostas
+  var lastRow = datasheet.getLastRow()
+  var lastColumn = datasheet.getLastColumn()
+  var range = datasheet.getRange(1, 1, lastRow, lastColumn)
+  var to_replace = "#REF!";
+  var replace_with = "";
+  var data  = range.getValues();
+ 
+    var oldValue="#REF!";
+    var newValue="1";
+    var cellsChanged = 0;
+ 
+    for (var r=0; r<data.length; r++) {
+      for (var i=0; i<data[r].length; i++) {
+        oldValue = data[r][i];
+        newValue = data[r][i].toString().replace(to_replace, replace_with);
+        if (oldValue!=newValue)
+        {
+          cellsChanged++;
+          data[r][i] = newValue;
+        }
+      }
+    }
+    range.setValues(data);
+ 
+ 
+
+
+}
