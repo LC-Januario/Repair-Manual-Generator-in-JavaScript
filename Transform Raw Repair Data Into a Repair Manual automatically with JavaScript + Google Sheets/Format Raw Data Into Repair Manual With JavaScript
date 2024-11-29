@@ -1,0 +1,1365 @@
+function copyToManual() {
+  // Salvar as abas da planilha na forma de variáveis
+  var formatSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Formatação");
+  var manualSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Manual");
+  var indexSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Índice");
+  var torqSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Torques");
+  var padraoPDFSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("PDFPadrão");
+
+
+
+
+
+
+
+
+  // Cria variáveis que são usadas depois
+  var n = 2; //índice da linha na planilha de dados
+  var t = 1; //índice da linha na página
+  var t2 = 1; //índice da linha na coluna F da página
+  var f = 1; //índice da primeira linha de um determinado item (usado pra pintar as caixas de cinza)
+  var collorindex = 1; //indica se a cor da caixa é cinza (ímpar) ou branca (par)
+  var systemindex = 1; //indica o índice do sistema atual
+  var systemcount = 1; //ainda não faz nada
+  var pagecount = 1; // conta em qual página estão o manual
+  var i = 1; // índice da linha na página geradora de índice
+  var c = 1; // índice da coluna pro loop das páginas de suspensão e freio
+  ///
+
+
+
+
+
+
+
+
+  //Limpa a planilha
+  manualSheet.clearContents(); // Limpa a planilha da página
+  manualSheet.clearFormats(); // Limpa a planilha da página (fundo e formatação de texto)
+  indexSheet.clearContents(); // Limpa a planilha de índice
+  torqSheet.clearContents(); // Limpa a planilha de torques
+  torqSheet.getRange("A" + 2).setFormula('=ARRAYFORMULA(sort( TorquesBrutos!A2:AW ; match(TorquesBrutos!AU2:AU;{"Bloco e Componentes";"Cabeçote e Componentes";"Distribuição"; "Transmissão"; "Direção"; "Suspensão Dianteira"; "Freio Dianteiro"; "Suspensão Traseira";"Freio Traseiro";"Outros Componentes"; "Carroceria e Chassi"};0);true;TorquesBrutos!AT2:AT;true; match(TorquesBrutos!AC2:AC;{"A";"B";"C"; "D"; "E"; "F"; "G"; "H"; "I"; "J"; "K";"L"; "M"; "N";"O";"P";"Q";"R";"S";"T";"U";"V";"X"}; 0); true;TorquesBrutos!AS2:AS;true ))'); // Reseta a fórmula de ordenação dos torques pra evitar problemas que estavam acontecedo de desconfiguração
+  ///
+
+
+
+
+  // Ajusta todas as linhas do manual para a mesma altura
+  var lastRow = manualSheet.getMaxRows();
+  var standardHeight = 19;  
+  manualSheet.setRowHeights(1, lastRow, standardHeight);
+  ///
+
+
+  // Loop principal
+  while (formatSheet.getRange(n, 1).getValue() !== "") { //executa até encontrar uma linha vazia
+
+
+    var statusfigura = formatSheet.getRange("P"+ n).getValue(); // Indica se tem figura e qual o tipo
+    var z  = Math.ceil(t/58)*58; // Última linha da página
+    var foot = z - 2; // Última linha utilizável da página
+    var a = (Math.ceil(t/58)-1)*58  + 1; // Primeira linha da página
+    var head = a + 5; // Primeira linha utilizável da página
+    var system = formatSheet.getRange("N"+n).getValue(); // Sistema atual
+    var pageui = 0; // Indica qual o template de página será usado dependendo do sistema
+    var linhassistema = formatSheet.getRange("T"+ n).getValue(); // Indica o total de linhas do sistema atual
+   
+
+
+    // Condicional pra adicionar o título e o índice da página. Adicionar o título na aba de "índice"
+    if (t === a){ //se t for a 1ª linha da página
+
+
+      t = head; //t passa a ser a primeira linha utilizável da página
+
+
+        if (systemindex == 1 || t == 6){ // Se for a primeira página de um determinado sistema ou a primeira de todas as linhas
+
+
+              indexSheet.getRange("A" + i).setValue(`${formatSheet.getRange("R"+n).getValue()} = ${pagecount}`); // Adiciona o sistema no índice
+              i += 1;
+             
+
+
+          } else if (systemindex == 1){ // Se for a primeira página de um determinado sistema
+
+
+
+
+              i += 1;
+              indexSheet.getRange("A" + i).setValue(`${formatSheet.getRange("R"+n).getValue()} = ${pagecount}`); // Adiciona o sistema no índice
+              i += 1;
+
+
+              }
+
+
+      a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+      z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+      padraoPDFSheet.getRange("A" + 1 + ":I" + 5).copyTo(manualSheet.getRange("A" + a + ":I" + (a+4))); // Copia o cabeçalho
+      manualSheet.getRange("B" + t).setValue(system).setFontWeight("bold").setFontSize(16).setFontColor('#ff8300').setVerticalAlignment("top"); // Adiciona o título na página
+     
+      manualSheet.setRowHeight(t,38);
+      padraoPDFSheet.getRange("A" + 56 + ":I" + 58).copyTo(manualSheet.getRange("A" + (z-2) + ":I" +(z-1))); // Copia o cabeçalho
+      t += 3;
+      collorindex = 1;
+      t += 1;
+      f = t;
+      a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+      z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+      systemindex += 1;    
+    } ///
+
+
+
+
+
+
+  // Condicional para pular para a próxima página se o sistema mudar
+  if(n == 2){
+
+
+  } else if (system !== formatSheet.getRange("N"+(n-1)).getValue()) {
+      system = formatSheet.getRange("N"+n).getValue();
+     
+      pagecount += 1;
+      systemindex = 1;
+      i += 1;
+      indexSheet.getRange("A" + i).setValue(`${formatSheet.getRange("R"+n).getValue()} = ${pagecount}`);
+      i += 1;
+      t = z+6;
+
+
+      a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+      z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+     
+     
+      padraoPDFSheet.getRange("A" + 1 + ":I" + 5).copyTo(manualSheet.getRange("A" + a + ":I" + (a+4))); // Copia o cabeçalho
+      manualSheet.getRange("B" + t).setValue(system).setFontWeight("bold").setFontSize(16).setFontColor('#ff8300').setVerticalAlignment("top"); // Adiciona o título na página
+     
+      manualSheet.setRowHeight(t,38);
+      padraoPDFSheet.getRange("A" + 56 + ":I" + 58).copyTo(manualSheet.getRange("A" + (z-2) + ":I" +(z-1))); // Copia o cabeçalho
+      t += 3;
+      t += 1;
+      f = t;
+      t2 = t;
+      collorindex = 1;
+      a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+      z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+     
+     
+    }///
+
+
+      a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+      z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+
+
+    //Impedir que caixas no fim da página fiquem cortadas
+    var linhas = formatSheet.getRange("O"+n).getValue() + t; // Quantidade de linhas do item atual + t
+    z = Math.ceil(t/58)*58; // Última linha da página
+    foot = z - 2; // Última linha utilizável da página
+    if (linhas >= foot){
+
+
+      systemindex += 1;
+      t = z+6;
+      a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+      z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+     
+      padraoPDFSheet.getRange("A" + 1 + ":I" + 5).copyTo(manualSheet.getRange("A" + a + ":I" + (a+4))); // Copia o cabeçalho
+      manualSheet.getRange("B" + t).setValue(system).setFontWeight("bold").setFontSize(16).setFontColor('#ff8300').setVerticalAlignment("top"); // Adiciona o título na página
+     
+      manualSheet.setRowHeight(t,38);
+      padraoPDFSheet.getRange("A" + 56 + ":I" + 58).copyTo(manualSheet.getRange("A" + (z-2) + ":I" +(z-1))); // Copia o cabeçalho
+      t += 3;
+      collorindex = 1;
+      pagecount += 1;
+      t += 1;
+      t2 = t;
+      f = t;
+      a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+      z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+     
+
+
+    }///
+
+
+      // Definir qual formatação de página será usada
+      if (system == "SUSPENSÃO DIANTEIRA"){
+ 
+      pageui = 1; //"pageui" define qual formatação de página atual
+     
+
+
+    }  else if (system == "SUSPENSÃO TRASEIRA"){
+
+
+      pageui = 2;
+     
+
+
+    }  else if (system == "FREIO DIANTEIRO"){
+
+
+     
+      pageui = 3;
+         
+
+
+    }   else if (system == "FREIO TRASEIRO"){
+
+
+   
+      pageui = 4;
+           
+
+
+    }   else if (system == "DIREÇÃO"){
+
+
+
+
+      pageui = 5;
+
+
+    }   else if (system == "DISTRIBUIÇÃO"){
+
+
+
+
+      pageui = 6;
+
+
+    } else {
+
+
+      pageui = 0;
+
+
+    }///
+
+
+
+
+    // Implementar formatação de página baseada no sistema atual  
+    if (pageui == 1 && t == head+4){
+ 
+      ////Logger.log(linhassistema);
+
+
+            if (foot - Math.ceil(linhassistema) >= head+22){
+           
+            ////Logger.log(pageui);
+            collorindex = 1;
+            t += foot - head -Math.ceil(linhassistema)-10;
+            a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+            z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+            t2 = t;
+
+
+            } else {
+             
+            collorindex = 1;
+            a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+            z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+
+
+            }
+     
+
+
+    }  else if (pageui == 2 && t == head+4){
+
+
+////Logger.log(linhassistema);
+     
+            if (foot - Math.ceil(linhassistema) >= head+18){
+
+
+            ////Logger.log(pageui);
+            collorindex = 1;
+            t += foot - head -Math.ceil(linhassistema)-10;
+            a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+            z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+            t2 = t;
+
+
+            } else {
+
+
+            collorindex = 1;
+            a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+            z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+
+
+            }
+     
+
+
+    }  else if (pageui == 3 && t == head+4){
+
+
+////Logger.log(linhassistema);
+
+
+            if (foot -Math.ceil(linhassistema) >= head+18){
+           
+            ////Logger.log(pageui);
+            collorindex = 1;
+            t += foot - head -Math.ceil(linhassistema)-10;
+            a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+            z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+            t2 = t;
+
+
+            } else {
+
+
+            collorindex = 1;
+            a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+            z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+
+
+            }
+     
+
+
+    }   else if (pageui == 4 && t == head+4){
+
+
+////Logger.log(linhassistema);
+
+
+            if (foot -Math.ceil(linhassistema) >= head+18){
+           
+            ////Logger.log(pageui);
+            collorindex = 1;
+            t += foot - head -Math.ceil(linhassistema)-10;
+            a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+            z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+            t2 = t;
+
+
+            } else {
+
+
+            collorindex = 1;
+            a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+            z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+
+
+            }
+     
+
+
+    }   else if (pageui == 5 && t == head+4 && formatSheet.getRange("X" + n).getValue() == 1){
+
+
+////Logger.log(linhassistema);
+
+
+            if (foot -Math.ceil(linhassistema) >= head+18){
+
+
+            ////Logger.log(pageui);
+            collorindex = 1;
+            f = t;
+            t += 20;
+            a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+            z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+            t2 = t;
+
+
+            } else {
+
+
+            collorindex = 1;
+            a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+            z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+
+
+            }
+     
+
+
+    }  else if (pageui == 6 && t == a+2 ){
+
+
+      collorindex = 1;
+
+
+    } else if (pageui == 0 && t == a+2 ){
+
+
+      collorindex = 1;
+
+
+    }
+
+
+
+
+   
+    // resize Manual line t to be 19 pixels in height
+   
+    t += 1;
+    t2 += 1;
+
+
+    a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+    z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+
+
+    // Para o código se não tiver mais torques pra copiar
+    if (formatSheet.getRange("A" + n).getValue() === "") break;
+
+
+
+
+
+
+   
+
+
+    if (pageui == 1 || pageui == 2 || pageui == 3 || pageui == 4){  // Para páginas de suspensão e freio
+    c = 1; // Reseta "c"
+    f = t; // Reseta "f"
+    var g = 1; // Registra o tamanho esperado para o item
+    var aviso1 = 0 // Registra se teve aviso 1
+    var aviso2 = 0 // Registra se teve aviso 2
+     
+        if (formatSheet.getRange("U" + n).getValue() == "") { // Se o item não tiver nenhum item do mesmo sistema abaixo dele (não tem uma "dupla")
+
+
+         
+                 
+                  manualSheet.getRange("B" + t).setValue("      "+ formatSheet.getRange(n, c).getValue() + ":").setFontSize(9).setFontWeight("bold"); // copia o nome do item
+                  manualSheet.setRowHeight(t, 19);
+                  indexSheet.getRange("A" + i).setValue(`>${formatSheet.getRange("Q"+n).getValue()} = ${pagecount}`);  // coloca no índice
+                  c += 2; // pula a coluna "instruções de aperto"
+                  t += 1; // próxima linha
+                  i += 1; // próxima linha do índice
+
+
+             
+              while (c <= 11 && g <= formatSheet.getRange("O"+n).getValue()) { // Enquanto a coluna for menor ou igual à coluna da "Etapa 5" e o tamanho do item for menor do que o esperado
+
+
+
+
+               
+                if (formatSheet.getRange(n,c).getValue() != "") { // Se a casa "Etapa" não estiver vazia
+
+
+                 
+                  manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n,c).getValue()).setFontSize(9).setFontWeight("bold"); // copia "Etapa" para a linha "t"
+                 
+                  manualSheet.getRange("C" + t).setValue(formatSheet.getRange(n,(c+1)).getValue()).setFontSize(9); // copia a instrução para a linha "t" uma coluna pro lado
+                  manualSheet.setRowHeight(t, 19);
+                  c += 2; // passa pra próxima coluna "etapa"
+                  t += 1; // passa pra próxima linha do manual
+                  g += 1; // medida do tamanho atual do item
+                 
+
+
+                } else if (formatSheet.getRange(n,(c+1)).getValue() == ""){
+
+
+                  c = 13;
+                 
+
+
+                } else {
+
+
+
+
+                  manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n,(c+1)).getValue()).setFontSize(9); // copia a instrução para a linha "t"
+                  manualSheet.setRowHeight(t, 19); //Define a altura da célula para 19px
+                  c += 2; // passa pra próxima coluna "etapa"
+                  t += 1; // passa pra próxima linha do manual
+                  g += 1; // medida do tamanho atual da dupla
+                 
+
+
+                }
+
+
+              }
+
+
+              c = 13;
+
+
+              if (formatSheet.getRange(n,c).getValue() != "") { // Se a casa "aviso" não estiver vazia
+
+
+              t += 1;
+              manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n,c).getValue()).setFontSize(9).setFontColor("red").setFontWeight("bold"); // copia o "aviso" pra linha "t" do manual
+              manualSheet.setRowHeight(t, 19);
+              t += 1; // deixa uma linha em branco no manual
+
+
+              }          
+
+
+
+
+            } else { // Se o item tiver uma "dupla"
+
+
+         
+
+
+              if (formatSheet.getRange("W"+ n).getValue() <= 52){ //Se o nome tem menos de 52 caracteres, copia normal (Item 1)
+
+
+              manualSheet.getRange("B" + t).setValue("      "+ formatSheet.getRange(n, c).getValue() + ":").setFontSize(9).setFontWeight("bold"); // copia o nome do item 1 pro manual
+              manualSheet.setRowHeight(t, 19);
+              indexSheet.getRange("A" + i).setValue(`>${formatSheet.getRange("Q"+n).getValue()} = ${pagecount}`);  // coloca no índice o item 1
+              i += 1; // próxima linha do índice
+
+
+              } else { //Se o nome tem mais de 52 caracteres, copia com a fonte reduzida pra caber todo o texto (usuário arruma no affinity depois) (Item 1)
+
+
+              manualSheet.getRange("B" + t).setValue("      "+ formatSheet.getRange(n, c).getValue() + ":").setFontWeight("bold").setFontSize(6).setFontColor("blue"); // copia o nome do item 1 pro manual
+              manualSheet.setRowHeight(t, 19);
+              indexSheet.getRange("A" + i).setValue(`>${formatSheet.getRange("Q"+n).getValue()} = ${pagecount}`);  // coloca no índice o item 1
+              i += 1; // próxima linha do índice
+
+
+              }
+
+
+              if (formatSheet.getRange("W"+ (n+1)).getValue() <= 52){ //Se o nome tem menos de 52 caracteres, copia normal (Item 2)
+
+
+
+
+              manualSheet.getRange("F" + t2).setValue("      "+formatSheet.getRange((n+1), c).getValue() + ":").setFontSize(9).setFontWeight("bold"); // copia o nome do item 2 pro manual
+              manualSheet.setRowHeight(t, 19);
+              indexSheet.getRange("A" + i).setValue(`>${formatSheet.getRange("Q"+(n+1)).getValue()} = ${pagecount}`);  // coloca no índice o item 2
+              i += 1; // próxima linha do índice
+
+
+               } else { //Se o nome tem mais de 52 caracteres, copia com a fonte reduzida pra caber todo o texto (usuário arruma no affinity depois) (Item 2)
+
+
+              manualSheet.getRange("F" + t2).setValue("      "+formatSheet.getRange((n+1), c).getValue() + ":").setFontWeight("bold").setFontSize(6).setFontColor("blue"); // copia o nome do item 2 pro manual
+              manualSheet.setRowHeight(t, 19);
+              indexSheet.getRange("A" + i).setValue(`>${formatSheet.getRange("Q"+(n+1)).getValue()} = ${pagecount}`);  // coloca no índice o item 2
+              i += 1; // próxima linha do índice
+
+
+              }
+
+
+                 
+              c = 3; // pula a coluna "instruções de aperto"
+              t += 1; // próxima linha
+              t2 += 1;
+                 
+                 
+
+
+                while (c<=11 && g <= formatSheet.getRange("O"+n).getValue() ) { // Enquanto a coluna for menor ou igual à coluna da "Etapa 5" e o tamanho do item for menor do que o esperado (Item 1)
+
+
+               
+
+
+                                if (formatSheet.getRange(n,(c+1)).getValue() != "" && c != 3) { // Se a casa "Instrução 1" não estiver vazia
+
+
+                                 
+                                  manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n,c).getValue()).setFontSize(9).setFontWeight("bold"); // copia "Etapa" para a linha "t"
+                                  manualSheet.getRange("C" + t).setValue(formatSheet.getRange(n,(c+1)).getValue()).setFontSize(9); // copia a instrução para a linha "t" uma coluna pro lado
+                                  manualSheet.setRowHeight(t, 19);
+                                  c += 2; // passa pra próxima coluna "etapa"
+                                  t += 1; // passa pra próxima linha do manual
+                                  g += 1; // medida do tamanho atual da dupla
+
+
+                                } else if (formatSheet.getRange((n),(c)).getValue() != "" && c == 3) { // Se a casa "Etapa 1" não estiver vazia
+
+
+                                 
+                                  manualSheet.getRange("B" + t).setValue(formatSheet.getRange((n),(c)).getValue()).setFontSize(9).setFontWeight("bold"); // copia "Etapa" para a linha "t"
+                                  manualSheet.getRange("C" + t).setValue(formatSheet.getRange((n),(c+1)).getValue()).setFontSize(9); // copia a instrução para a linha "t" uma coluna pro lado
+                                  manualSheet.setRowHeight(t, 19);
+                                  c += 2; // passa pra próxima coluna "etapa"
+                                  t += 1; // passa pra próxima linha do manual
+                                  g += 1; // medida do tamanho atual da dupla
+
+
+                                } else if (formatSheet.getRange(n,(c+1)).getValue() == ""){ // Se não tiver mais uma etapa, pula direto pro "aviso"
+
+
+                                  c = 13;
+
+
+                                } else {
+
+
+
+
+                                  manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n,(c+1)).getValue()).setFontSize(9); // copia a instrução para a linha "t"
+                                  manualSheet.setRowHeight(t, 19);
+                                  c += 2; // passa pra próxima coluna "etapa"
+                                  t += 1; // passa pra próxima linha do manual
+                                  g += 1; // medida do tamanho atual da dupla
+
+
+                                }
+                               
+
+
+                              } // Fim do loop do Item 1
+                             
+
+
+                     
+
+
+                c = 3; //reseta "c" para o loop do item 2
+               
+                g = 1; //reseta "g" para o loop do item 2
+
+
+               
+
+
+                while (c<=11 && g <= formatSheet.getRange("O"+(n+1)).getValue()) { // Enquanto a coluna for menor ou igual à coluna da "Etapa 5" e o tamanho do item for menor do que o esperado (Item 2)
+
+
+
+
+                                if (formatSheet.getRange((n+1),(c+1)).getValue() != "" && c != 3) { // Se a casa "instrução 1" não estiver vazia
+
+
+                                 
+                                  manualSheet.getRange("F" + t2).setValue(formatSheet.getRange((n+1),(c)).getValue()).setFontSize(9).setFontWeight("bold"); // copia "Etapa" para a linha "t"
+                                  manualSheet.getRange("G" + t2).setValue(formatSheet.getRange((n+1),(c+1)).getValue()).setFontSize(9); // copia a instrução para a linha "t" uma coluna pro lado
+                                  manualSheet.setRowHeight(t, 19);
+                                  c += 2; // passa pra próxima coluna "etapa"
+                                  t2 += 1; // passa pra próxima linha do manual
+                                  g += 1; // medida do tamanho atual da dupla
+
+
+                                } else if (formatSheet.getRange((n+1),(c)).getValue() != "" && c == 3) { // Se a casa "Etapa 1" não estiver vazia
+
+
+                                 
+                                  manualSheet.getRange("F" + t2).setValue(formatSheet.getRange((n+1),(c)).getValue()).setFontSize(9).setFontWeight("bold"); // copia "Etapa" para a linha "t"
+                                  manualSheet.getRange("G" + t2).setValue(formatSheet.getRange((n+1),(c+1)).getValue()).setFontSize(9); // copia a instrução para a linha "t" uma coluna pro lado
+                                  manualSheet.setRowHeight(t, 19);
+                                  c += 2; // passa pra próxima coluna "etapa"
+                                  t2 += 1; // passa pra próxima linha do manual
+                                  g += 1; // medida do tamanho atual da dupla
+
+
+                                } else if (formatSheet.getRange((n+1),(c+1)).getValue() == ""){ // Se não tiver mais uma etapa, pula direto pro "aviso"
+
+
+                                  c = 13;
+
+
+                                } else {
+
+
+
+
+                                  manualSheet.getRange("F" + t2).setValue(formatSheet.getRange((n+1),(c+1)).getValue()).setFontSize(9); // copia a instrução para a linha "t"
+                                  manualSheet.setRowHeight(t, 19);
+                                  c += 2; // passa pra próxima coluna "etapa"
+                                  t2 += 1; // passa pra próxima linha do manual
+                                  g += 1; // medida do tamanho atual da dupla
+
+
+                                }
+                               
+
+
+                              } // Fim do loop do Item 2
+
+
+                             
+              c = 13;
+
+
+             
+              if (formatSheet.getRange(n,c).getValue() != "") { // Se a casa "aviso" não estiver vazia (Item 1)
+             
+             
+              t += 1;
+              manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n,c).getValue()).setFontSize(9).setFontColor("red").setFontWeight("bold"); // copia o "aviso" pra linha "t" do manual
+              manualSheet.setRowHeight(t, 19);
+              t += 1;
+              aviso1 = 1;
+           
+
+
+              } // fim do aviso (Item 1)
+
+
+              if (formatSheet.getRange((n+1),c).getValue() != "" && aviso1 > 0) { // Se a casa "aviso" não estiver vazia (Item 2)
+
+
+             
+              t2 += 1;
+              manualSheet.getRange("F" + t2).setValue(formatSheet.getRange((n+1),c).getValue()).setFontSize(9).setFontColor("red").setFontWeight("bold"); // copia o "aviso" pra linha "t2" do manual
+              manualSheet.setRowHeight(t, 19);
+              t2 += 1;
+              aviso2 = 1;
+             
+              } // fim do aviso (Item 2)
+
+
+             
+
+
+           
+            n += 1;
+               
+
+
+              }
+            } else if (pageui == 6 && formatSheet.getRange("X"+ n).getValue() == 1) { //Se for uma página da Distibuição e subsistema 1
+              //Logger.log("if direção")
+              c = 3; // Reseta "c"
+              f = t - 1; // Reseta "f"
+              g = 1; // Registra o tamanho esperado para o item
+              aviso1 = 0 // Registra se teve aviso 1
+
+
+              if (formatSheet.getRange("X"+ n).getValue() == 1){ //Se for do subsistema 1 (Componentes ligados à correia dentada/corrente que aparecem na ilustração)
+              //Logger.log("if subsistema");
+                while (formatSheet.getRange("X"+ n).getValue() == 1){ //Enquanto for do subsistema 1 copia os itens normalmente com espaço para a letra de identificação
+              //Logger.log("loop maior");
+              manualSheet.getRange("B" + t).setValue("      "+ formatSheet.getRange(n, 1).getValue() + ":").setFontSize(9).setFontWeight("bold");
+              t += 1;
+              manualSheet.setRowHeight(t, 19);
+              indexSheet.getRange("A" + i).setValue(`>${formatSheet.getRange("Q"+n).getValue()} = ${pagecount}`);
+              i += 1;
+
+
+              while (c<=11 && g <= formatSheet.getRange("O"+n).getValue() ) { // Enquanto a coluna for menor ou igual à coluna da "Etapa 5" e o tamanho do item for menor do que o esperado
+
+
+               
+               
+                           
+                //Logger.log("loop menor");
+
+
+                                if (formatSheet.getRange(n,(c+1)).getValue() != "" && c != 3) { // Se a casa "Instrução 1" não estiver vazia
+
+
+                                 
+                                  manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n,c).getValue()).setFontSize(9).setFontWeight("bold"); // copia "Etapa" para a linha "t"
+                                  manualSheet.getRange("C" + t).setValue(formatSheet.getRange(n,(c+1)).getValue()).setFontSize(9); // copia a instrução para a linha "t" uma coluna pro lado
+                                  manualSheet.setRowHeight(t, 19);
+                                  c += 2; // passa pra próxima coluna "etapa"
+                                  t += 1; // passa pra próxima linha do manual
+                                  g += 1; // medida do tamanho atual da dupla
+
+
+                                } else if (formatSheet.getRange((n),(c)).getValue() != "" && c == 3) { // Se a casa "Etapa 1" não estiver vazia
+
+
+                                 
+                                  manualSheet.getRange("B" + t).setValue(formatSheet.getRange((n),(c)).getValue()).setFontSize(9).setFontWeight("bold"); // copia "Etapa" para a linha "t"
+                                  manualSheet.getRange("C" + t).setValue(formatSheet.getRange((n),(c+1)).getValue()).setFontSize(9); // copia a instrução para a linha "t" uma coluna pro lado
+                                  manualSheet.setRowHeight(t, 19);
+                                  c += 2; // passa pra próxima coluna "etapa"
+                                  t += 1; // passa pra próxima linha do manual
+                                  g += 1; // medida do tamanho atual da dupla
+
+
+                                } else if (formatSheet.getRange(n,(c+1)).getValue() == ""){ // Se não tiver mais uma etapa, pula direto pro "aviso"
+
+
+                                  c = 13;
+
+
+                                } else {
+
+
+
+
+                                  manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n,(c+1)).getValue()).setFontSize(9); // copia a instrução para a linha "t"
+                                  manualSheet.setRowHeight(t, 19);
+                                  c += 2; // passa pra próxima coluna "etapa"
+                                  t += 1; // passa pra próxima linha do manual
+                                  g += 1; // medida do tamanho atual da dupla
+
+
+                                }
+                               
+
+
+                              } // Fim do loop de colagem do item em questão
+                c = 13;
+               
+
+
+             
+              if (formatSheet.getRange(n,c).getValue() != "") { // Se a casa "aviso" não estiver vazia
+             
+             
+              t += 1;
+              manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n,c).getValue()).setFontSize(9).setFontColor("red").setFontWeight("bold"); // copia o "aviso" pra linha "t" do manual
+              manualSheet.setRowHeight(t, 19);
+              t += 1;
+           
+
+
+              } // fim do aviso
+
+
+            c = 3; // Reseta "c"
+
+
+            t += 1;
+         
+            g = 1; // Registra o tamanho esperado para o item
+                 
+            n +=1;
+
+
+                } // fim do loop do subsistema 1
+             
+              t += 18;
+              n -= 1;
+
+
+
+
+              } // fim da formatação do subsistema 1
+
+
+
+
+            } else if (pageui == 5 && formatSheet.getRange("X"+ n).getValue() == 1) { //Se for uma página da Direção e subsistema 1
+              //Logger.log("if direção")
+              c = 3; // Reseta "c"
+             
+              g = 1; // Registra o tamanho esperado para o item
+              aviso1 = 0 // Registra se teve aviso 1
+
+
+              if (formatSheet.getRange("X"+ n).getValue() == 1){ //Se for do subsistema 1 (Componentes que aparecem na ilustração)
+              //Logger.log("if subsistema");
+                while (formatSheet.getRange("X"+ n).getValue() == 1){ //Enquanto for do subsistema 1 copia os itens normalmente com espaço para a letra de identificação
+              //Logger.log("loop maior");
+              manualSheet.getRange("B" + t).setValue("      "+ formatSheet.getRange(n, 1).getValue() + ":").setFontSize(9).setFontWeight("bold");
+             
+              manualSheet.setRowHeight(t, 19);
+              indexSheet.getRange("A" + i).setValue(`>${formatSheet.getRange("Q"+n).getValue()} = ${pagecount}`);
+              i += 1;
+              t += 1;
+              manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n, 2).getValue()).setFontSize(9).setFontWeight("bold");
+
+
+              while (c<=11 && g <= formatSheet.getRange("O"+n).getValue() ) { // Enquanto a coluna for menor ou igual à coluna da "Etapa 5" e o tamanho do item for menor do que o esperado
+
+
+                            if (c == 3) {  //Se for a primeira etapa  adiciona uma linha em branco
+                            t += 1;
+                            }
+
+
+                //Logger.log("loop menor");
+
+
+                                if (formatSheet.getRange(n,(c+1)).getValue() != "" && c != 3) { // Se a casa "Instrução 1" não estiver vazia
+
+
+                                 
+                                  manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n,c).getValue()).setFontSize(9).setFontWeight("bold"); // copia "Etapa" para a linha "t"
+                                  manualSheet.getRange("C" + t).setValue(formatSheet.getRange(n,(c+1)).getValue()).setFontSize(9); // copia a instrução para a linha "t" uma coluna pro lado
+                                  manualSheet.setRowHeight(t, 19);
+                                  c += 2; // passa pra próxima coluna "etapa"
+                                  t += 1; // passa pra próxima linha do manual
+                                  g += 1; // medida do tamanho atual da dupla
+
+
+                                } else if (formatSheet.getRange((n),(c)).getValue() != "" && c == 3) { // Se a casa "Etapa 1" não estiver vazia
+
+
+                                 
+                                  manualSheet.getRange("B" + t).setValue(formatSheet.getRange((n),(c)).getValue()).setFontSize(9).setFontWeight("bold"); // copia "Etapa" para a linha "t"
+                                  manualSheet.getRange("C" + t).setValue(formatSheet.getRange((n),(c+1)).getValue()).setFontSize(9); // copia a instrução para a linha "t" uma coluna pro lado
+                                  manualSheet.setRowHeight(t, 19);
+                                  c += 2; // passa pra próxima coluna "etapa"
+                                  t += 1; // passa pra próxima linha do manual
+                                  g += 1; // medida do tamanho atual da dupla
+
+
+                                } else if (formatSheet.getRange(n,(c+1)).getValue() == ""){ // Se não tiver mais uma etapa, pula direto pro "aviso" e adiciona uma linha
+
+
+                                  c = 13;
+                                  t += 1;
+
+
+
+
+                                } else {
+
+
+
+
+                                  manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n,(c+1)).getValue()).setFontSize(9); // copia a instrução para a linha "t"
+                                  manualSheet.setRowHeight(t, 19);
+                                  c += 2; // passa pra próxima coluna "etapa"
+                                  t += 1; // passa pra próxima linha do manual
+                                  g += 1; // medida do tamanho atual da dupla
+
+
+                                }
+                               
+
+
+                              } // Fim do loop de colagem do item em questão
+                c = 13;
+               
+
+
+             
+              if (formatSheet.getRange(n,c).getValue() != "") { // Se a casa "aviso" não estiver vazia
+             
+             
+             
+              manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n,c).getValue()).setFontSize(9).setFontColor("red").setFontWeight("bold"); // copia o "aviso" pra linha "t" do manual
+              manualSheet.setRowHeight(t, 19);
+              t += 2;
+           
+
+
+              } // fim do aviso
+
+
+            c = 3; // Reseta "c"
+         
+            g = 1; // Registra o tamanho esperado para o item
+                 
+            n +=1;
+
+
+         
+
+
+                } // fim do loop do subsistema 1
+             
+             
+              n -= 1;
+              t -= 1;
+
+
+
+
+              } // fim da formatação do subsistema 1
+
+
+
+
+            } else {
+
+
+             
+              // Copiar o nome do item pro manual e pro índice
+              manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n, 1).getValue()).setFontSize(9).setFontWeight("bold");
+              manualSheet.setRowHeight(t, 19);
+              indexSheet.getRange("A" + i).setValue(`>${formatSheet.getRange("Q"+n).getValue()} = ${pagecount}`);
+              i += 1;
+
+
+              // increment t
+             
+              f = t - 1;
+             
+              t += 2;
+             
+
+
+              // copy column B to Bt
+              manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n, 2).getValue()).setFontSize(9).setFontWeight("bold");
+              manualSheet.setRowHeight(t, 19);
+              t += 1;
+
+
+              // check if column C is not empty
+              if (formatSheet.getRange(n, 3).getValue() !== "") {
+                // copy column C to Bt and column D to Ct
+                manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n, 3).getValue()).setFontSize(9).setFontWeight("bold");
+                manualSheet.getRange("C" + t).setValue(formatSheet.getRange(n, 4).getValue()).setFontSize(9);
+                manualSheet.setRowHeight(t, 19);
+
+
+                // increment t
+                t++;
+
+
+              } else {
+                // copy column D to Bt
+                manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n, 4).getValue()).setFontSize(9);
+                manualSheet.setRowHeight(t, 19);
+                t++;
+              }
+
+
+              // check if column F is not empty
+              if (formatSheet.getRange(n, 6).getValue() !== "") {
+                // check if column E is not empty
+                if (formatSheet.getRange(n, 5).getValue() !== "") {
+                  // copy column E to Bt and column F to Ct
+                  manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n, 5).getValue()).setFontSize(9).setFontWeight("bold");
+                  manualSheet.getRange("C" + t).setValue(formatSheet.getRange(n, 6).getValue()).setFontSize(9);
+                  manualSheet.setRowHeight(t, 19);
+
+
+                  // increment t
+                  t++;
+
+
+                } else {
+                  // copy column F to Bt
+                  manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n, 6).getValue()).setFontSize(9);
+                  manualSheet.setRowHeight(t, 19);
+                  t++;
+                }    
+              }
+
+
+
+
+              // check if column H is not empty
+              if (formatSheet.getRange(n, 8).getValue() !== "") {
+                if (formatSheet.getRange(n, 7).getValue() !== "") {
+                    manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n, 7).getValue()).setFontSize(9).setFontWeight("bold");
+                    manualSheet.getRange("C" + t).setValue(formatSheet.getRange(n, 8).getValue()).setFontSize(9);
+                    manualSheet.setRowHeight(t, 19);
+                    t++;
+                  } else {
+                    manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n, 8).getValue()).setFontSize(9);
+                    manualSheet.setRowHeight(t, 19);
+                    t++;
+                  }
+                }
+
+
+                // check if column J is not empty
+                if (formatSheet.getRange(n, 10).getValue() !== "") {
+                  if (formatSheet.getRange(n, 9).getValue() !== "") {
+                    manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n, 9).getValue()).setFontSize(9).setFontWeight("bold");
+                    manualSheet.getRange("C" + t).setValue(formatSheet.getRange(n, 10).getValue()).setFontSize(9);
+                    manualSheet.setRowHeight(t, 19);
+                    t++;
+                  } else {
+                    manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n, 10).getValue()).setFontSize(9);
+                    manualSheet.setRowHeight(t, 19);
+                    t++;
+                  }
+                }
+
+
+              // check if column L is not empty
+              if (formatSheet.getRange(n, 12).getValue() !== "") {
+                if (formatSheet.getRange(n, 11).getValue() !== "") {
+                  manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n, 11).getValue()).setFontSize(9).setFontWeight("bold");
+                  manualSheet.getRange("C" + t).setValue(formatSheet.getRange(n, 12).getValue()).setFontSize(9);
+                  manualSheet.setRowHeight(t, 19);
+                  t++;
+                } else {
+                  manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n, 12).getValue()).setFontSize(9);
+                  manualSheet.setRowHeight(t, 19);
+                  t++;
+                }
+              }
+
+
+
+
+              // Adicionar aviso
+              if (formatSheet.getRange(n, 13).getValue() !== "") {
+
+
+                t++
+                // copy column M to Bt
+                manualSheet.getRange("B" + t).setValue(formatSheet.getRange(n, 13).getValue()).setFontSize(9).setFontColor("red").setFontWeight("bold");
+                manualSheet.setRowHeight(t, 19);
+
+
+                // increment t
+                t++;
+              }
+
+
+
+
+              //Aumentar as caixas se tiver imagem
+
+
+              if (statusfigura == 2){
+
+
+                t += 5;
+                a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+                z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+
+
+              } else if (statusfigura == 3){
+
+
+                t += 18;
+                a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+                z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+
+
+              }
+
+
+           
+              a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+              z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+
+
+              // resize Manual line t to be 19 pixels in height
+              //manualSheet.setRowHeight(t, 19);
+              }
+
+
+           
+    // Pinta de cinza dependendendo do "índicador de cor" e do template da página
+    if (pageui == 1 || pageui == 2 || pageui == 3 || pageui == 4) {
+            if (t >= t2){
+      manualSheet.getRange("A" + (head+4) + ":H" + t).setBackground("#F0F1F1");
+            } else {
+              manualSheet.getRange("A" + (head+4) + ":H" + t2).setBackground("#F0F1F1");
+            }
+    } else if (collorindex % 2){
+      manualSheet.getRange("A" + f + ":H" + t).setBackground("#F0F1F1");
+      t++;
+    } else {
+      t++;
+    }
+
+
+
+
+
+
+    // update loop variables
+    n++;
+    if (pageui == 0 || pageui == 5 || pageui == 6){
+      collorindex++;
+      }
+ 
+    f = t;
+    a = (Math.ceil(t/58)-1)*58 + 1; // Primeira linha da página
+      head = a + 5; // Primeira linha utilizável da página
+    z = Math.ceil(t/58)*58; // Última linha da página
+      foot = z - 2; // Última linha utilizável da página
+  }
+
+
+
+
+// Numeração das páginas
+var t3 = 1; // linha atual
+var a3 = (Math.ceil(t3/58)-1)*58 + 1; // primeira linha da página atual
+var z3 = Math.ceil(t3/58)*58; // última linha da página atual
+var f3 = t3; // primeira linha do sistema
+systemindex = 1; // página atual do sistema
+systemcount = 1; // quantidade de páginas do sistema
+pagecount = 1; // página atual
+
+
+while (t3 <= t) {  // enquanto a linha atual estiver dentro do manual
+ 
+  system = manualSheet.getRange("B"+ (a3+5)).getValue(); // salva qual o sistema atual
+ 
+  a3 = (Math.ceil(t3/58)-1)*58 + 1; // primeira linha da página atual
+  pagecount = Math.ceil(t3/58); // página atual
+  systemindex = 1; // página atual do sistema
+  systemcount = 1; // quantidade de páginas do sistema
+  f3 = t3; // primeira linha do sistema
+ 
+// Loop pra contar quantas páginas cada sistema tem
+  while (system == manualSheet.getRange("B"+ (a3+63)).getValue() && t3 <= 700){ // enquanto o sistema da próxima página for igual ao sistema da página atual E a linha estiver dentro do manual
+
+
+    ////Logger.log("page = " + pagecount + "  t3 = " + t3);
+    system = manualSheet.getRange("B"+ (a3+5)).getValue(); // salva qual o sistema atual
+    systemcount += 1; // incrementa a quantidade de páginas do sistema
+    t3 += 58; // vai pra próxima página
+    a3 = (Math.ceil(t3/58)-1)*58 + 1; // primeira linha da página atual
+    pagecount = Math.ceil(t3/58); // página atual
+
+
+  } // Fim do loop
+ 
+
+
+            if (systemcount == 1) { // se o sistema atual tiver só uma página
+         
+              t3 += 58; // pula pra próxima página
+              a3 = (Math.ceil(t3/58)-1)*58 + 1; // atualiza qual a primeira linha da página atual
+              pagecount = Math.ceil(t3/58); // atualiza a página atual
+
+
+            } else { //se o sistema tiver mais de uma página
+
+
+             
+              pagecount = Math.ceil(t3/58); // atualiza a página atual
+              t3 =  f3; // volta pra primeira linha/página do sistema
+              a3 = (Math.ceil(t3/58)-1)*58 + 1; // atualiza qual a primeira linha da página atual
+              z3 = (Math.ceil(t3/58)-1)*58; // atualiza qual a última linha da página atual
+             
+             
+             
+
+
+              while (systemindex <= systemcount) { // enquanto o índice do sistema for menor que o índice
+               
+
+
+                  manualSheet.getRange("G" + (a3+5)).setValue(`0${systemindex}/0${systemcount}`).setFontWeight("bold").setFontSize(16).setFontColor("#ff8300").setHorizontalAlignment("Right").setVerticalAlignment("top"); // salva "índice atual do sistema/quantidade de páginas do sistema" na página atual
+                  systemindex += 1; // aumenta o índice do sistema
+                  t3 += 58; // vai pra próxima página
+                  a3 = (Math.ceil(t3/58)-1)*58 + 1; // atualiza qual a primeira linha da página atual
+                 
+
+
+              }
+
+
+            }
+
+
+}
+
+
+}
+
+
+
+
+function save() { ///Salva as informações da "Torques Brutos" numa outra planilha
+
+
+var torqBrutoSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("TorquesBrutos");
+var guiaRapido = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Guia Rápido");
+var registro = SpreadsheetApp.openByUrl('https://docs.google.com/spreadsheets/d/1G4kAJhHVqjBC1B-X84TJDMIXvn2idCtNIhxO49oa5vA/edit#gid=0');
+
+
+
+
+
+
+idManual = guiaRapido.getRange('C3').getValue();
+temp = registro.getSheetByName(idManual);
+
+
+if (idManual == '') {
+
+
+  var ui = SpreadsheetApp.getUi();
+  var text = 'PREENCHA O ID DO MANUAL NA ABA "Guia Rápido"';
+  ui.alert(text);
+
+
+} else {
+
+
+if (temp == null) {
+
+
+registro.insertSheet(idManual);
+registro.getSheetByName(idManual).insertColumnsAfter(registro.getSheetByName(idManual).getMaxColumns(),torqBrutoSheet.getMaxColumns() - registro.getSheetByName(idManual).getMaxColumns());
+registro.getSheetByName(idManual).deleteRows(torqBrutoSheet.getMaxRows(),(registro.getSheetByName(idManual).getMaxRows() - torqBrutoSheet.getMaxRows()));
+registro.getSheetByName(idManual).getRange('A:AX').setValues(torqBrutoSheet.getRange('A:AX').getValues());
+
+
+} else {
+
+
+
+
+
+
+      if (registro.getSheetByName(idManual).getMaxColumns() < torqBrutoSheet.getMaxColumns()) {
+
+
+      registro.getSheetByName(idManual).insertColumnsAfter(registro.getSheetByName(idManual).getMaxColumns(),torqBrutoSheet.getMaxColumns() - registro.getSheetByName(idManual).getMaxColumns());
+
+
+      }
+
+
+
+
+      if (registro.getSheetByName(idManual).getMaxRows() != torqBrutoSheet.getMaxRows()) {
+
+
+      registro.getSheetByName(idManual).deleteRows(torqBrutoSheet.getMaxRows(),(registro.getSheetByName(idManual).getMaxRows() - torqBrutoSheet.getMaxRows()));
+
+
+      }
+
+
+registro.getSheetByName(idManual).getRange('A:AX').setValues(torqBrutoSheet.getRange('A:AX').getValues());
+
+
+}
+
+
+}
+}
